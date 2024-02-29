@@ -137,7 +137,11 @@ int nextID(ifstream &db)
         stringstream data(line);
         string id;
         data >> id;
-        num = max(num, std::stoi(id));
+        int result;
+        id = id.substr(0, id.size() - 1);
+        stringstream ss(id);
+        ss >> result;
+        num = max(num, result);
     }
     return num + 1;
 }
@@ -412,9 +416,9 @@ void Customer::rentCar()
     }
     else
     {
-        if((this->customer_record) / 10 - this->numberOfRentedCars() <= 0)
+        if ((this->customer_record) / 10 - this->numberOfRentedCars() <= 0)
         {
-            cout<<"Your record too poor to get access to rent another car. So, you cannot rent more than "<< this->numberOfRentedCars()<<" cars."<<endl;
+            cout << "Your record too poor to get access to rent another car. So, you cannot rent more than " << this->numberOfRentedCars() << " cars." << endl;
             return;
         }
         cout << "According to your record and number of cars you rented currently, your can rent a max of " << (this->customer_record) / 10 - this->numberOfRentedCars() << " cars." << endl;
@@ -828,9 +832,9 @@ void Employee::rentCar()
     }
     else
     {
-        if((this->employee_record) / 10 - this->numberOfRentedCars() <= 0)
+        if ((this->employee_record) / 10 - this->numberOfRentedCars() <= 0)
         {
-            cout<<"Your record too poor to get access to rent another car. So, you cannot rent more than "<< this->numberOfRentedCars()<<" cars."<<endl;
+            cout << "Your record too poor to get access to rent another car. So, you cannot rent more than " << this->numberOfRentedCars() << " cars." << endl;
             return;
         }
         cout << "According to your record and number of cars rented already, your can rent a max of " << (this->employee_record) / 10 - this->numberOfRentedCars() << " cars." << endl;
@@ -1144,15 +1148,19 @@ void Manager::updateCustomer()
         {
             validID = true;
             cout << "The following is this customer's info. Just enter the data to be changed in same order and enter the same data if you do not want to change a particular attribute." << endl;
+            cout << "[NOTE: Manager can't edit any customer's rentedCars attribute.(NO ACCESS)]" << endl;
             cout << "Name: " << Name << endl;
             cout << "Password: " << Password << endl;
-            cout << "RentedCars: " << RentedCars << endl;
             cout << "Fine: " << Fine << endl;
             cout << "Customer_Record: " << Customer_record << endl;
-            string name, password, rentedCars;
+            string name, password;
             int fine, customerRecord;
-            cin >> name >> password >> rentedCars >> fine >> customerRecord;
-            newFile << ID << " " << name << " " << password << " " << rentedCars << " " << fine << " " << customerRecord << endl;
+            cin >> name >> password >> fine >> customerRecord;
+            // Changing the average customer record.
+            int total_record = (Customer::number_of_customers * Customer::average_customer_record - customerRecord);
+            Customer::average_customer_record = (total_record + customerRecord) / (Customer::number_of_customers);
+
+            newFile << ID << " " << name << " " << password << " " << RentedCars << " " << fine << " " << customerRecord << endl;
             cout << "Customer updated successfully!!" << endl;
         }
     }
@@ -1197,6 +1205,13 @@ void Manager::deleteCustomer()
         else
         {
             validID = true;
+            if (rentedCars != "NONE")
+            {
+                cout << "You cannot delete this customer because he has rented " << rentedCars << endl;
+                newFile << ID << " " << Name << " " << password << " " << rentedCars << " " << fine << " " << customer_record << endl;
+                // break;
+                continue;
+            }
             // Decrement the number of customers in customer class and change the average customer record.
             Customer::average_customer_record = ((Customer::average_customer_record) * (Customer::number_of_customers)-customer_record) / (Customer::number_of_customers - 1);
             Customer::number_of_customers--;
@@ -1224,20 +1239,20 @@ void Manager::deleteCustomer()
 void Manager::addEmployee()
 {
     // ID will be decided by default.---> cant be given by manager.
-    cout << "Enter the details of the customer: " << endl;
+    cout << "Enter the details of the employee: " << endl;
     string ID;
     string Name;
     string password;
-    cout << "Enter the name of the customer: " << endl;
+    cout << "Enter the name of the employee: " << endl;
     cin >> Name;
-    cout << "Enter the password of the customer: " << endl;
+    cout << "Enter the password of the employee: " << endl;
     cin >> password;
     ifstream db;
     db.open("EMPLOYEEdb.txt");
     int id = nextID(db);
     db.close();
     ID = to_string(id) + 'E';
-    Employee E(Name, ID, password, "NONE", 0, 0);
+    Employee E(Name, ID, password, "NONE", 0, Employee::average_employee_record);
     E.employeeSignup();
 }
 
@@ -1265,16 +1280,21 @@ void Manager::updateEmployee()
             validID = true;
             // newFile << this->ID << " " << this->Name << " " << this->password << " " << this->rentedCars << " " << this->fine << " " << this->customer_record << endl;
             cout << "The following is this customer's info. Just enter the data to be changed in same order and enter the same data if you do not want to change a particular attribute." << endl;
+            cout << "[NOTE: Manager can't edit any employee's rentedCars attribute.(NO ACCESS)]" << endl;
             // cout << Name << " " << Password << " " << RentedCars << " " << Fine << " " << Employee_record << endl;
             cout << "Name: " << Name << endl;
             cout << "Password: " << Password << endl;
-            cout << "RentedCars: " << RentedCars << endl;
+            // cout << "RentedCars: " << RentedCars << endl;
             cout << "Fine: " << Fine << endl;
             cout << "Employee_Record: " << Employee_record << endl;
-            string name, password, rentedCars;
+            string name, password;
             int fine, employeeRecord;
-            cin >> name >> password >> rentedCars >> fine >> employeeRecord;
-            newFile << ID << " " << name << " " << password << " " << rentedCars << " " << fine << " " << employeeRecord << endl;
+            cin >> name >> password >> fine >> employeeRecord;
+            // Changing average record.
+            int total_record = (Employee::number_of_employees * Employee::average_employee_record - Employee_record);
+            Employee::average_employee_record = (total_record + employeeRecord) / (Employee::number_of_employees);
+
+            newFile << ID << " " << name << " " << password << " " << RentedCars << " " << fine << " " << employeeRecord << endl;
             cout << "Employee updated successfully!!" << endl;
         }
     }
@@ -1319,6 +1339,13 @@ void Manager::deleteEmployee()
         else
         {
             validID = true;
+            if (rentedCars != "NONE")
+            {
+                cout << "You cannot delete this employee because he has rented " << rentedCars << endl;
+                newFile << ID << " " << Name << " " << password << " " << rentedCars << " " << fine << " " << employee_record << endl;
+                // break;
+                continue;
+            }
             // Decrement the number of customers in customer class and change the average customer record.
             Employee::average_employee_record = ((Employee::average_employee_record) * (Employee::number_of_employees)-employee_record) / (Employee::number_of_employees - 1);
             Employee::number_of_employees--;
@@ -1346,19 +1373,20 @@ void Manager::deleteEmployee()
 void Manager::addCar()
 {
     cout << "Give the car details here in the same order as below (mention N/A in Customer/Employee ID attribute if no one is currently renting it): " << endl;
-    cout << "Model Condition Availability RentCost(per day) Duedate Customer/EmployeeID" << endl;
+    cout << "[Make sure that model is unique(i.e., different from all that of previous cars)]"<<endl;
+    cout << "Model Condition RentCost(per day)" << endl;
     char Model;
-    int Condition, RentCost, Duedate;
-    string Availability, ID;
-    cin >> Model >> Condition >> Availability >> RentCost >> Duedate >> ID;
+    int Condition, RentCost;
+    // string Availability, ID;
+    cin >> Model >> Condition >>RentCost;
     fstream fdb;
     fdb.open("CARdb.txt", ios::app);
     if (fdb)
     {
-        fdb << Model << " " << Condition << " " << Availability << " "
+        fdb << Model << " " << Condition << " " << "Yes" << " "
             << RentCost
             << " "
-            << Duedate << " " << ID << endl;
+            << 0 << " " << "N/A" << endl;
         fdb.close();
         cout << "Added successfully!!" << endl;
     }
@@ -1397,17 +1425,17 @@ void Manager::updateCar()
         {
             cout << "The following is this car's info. Just enter the data to be changed in same order and enter the same data if you do not want to change a particular attribute." << endl;
             cout << "Condition: " << condition << endl;
-            cout << "Availability: " << availability << endl;
+            // cout << "Availability: " << availability << endl;
             cout << "Price(per day)" << price << endl;
             cout << "DueDate" << dueDate << endl;
-            cout << "RentedTo" << rentedTo << endl;
+            // cout << "RentedTo" << rentedTo << endl;
             int input_condition;
-            string input_availability;
+            // string input_availability;
             int input_price;
             int input_dueDate;
-            string input_rentedTo;
-            cin >> input_condition >> input_availability >> input_price >> input_dueDate >> input_rentedTo;
-            NewFile << model << " " << input_condition << " " << input_availability << " " << input_price << " " << input_dueDate << " " << input_rentedTo << endl;
+            // string input_rentedTo;
+            cin >> input_condition >> input_price >> input_dueDate;
+            NewFile << model << " " << input_condition << " " << availability << " " << input_price << " " << input_dueDate << " " << rentedTo << endl;
             cout << "Car updated successfully!!" << endl;
         }
     }
@@ -1451,6 +1479,12 @@ void Manager::deleteCar()
             NewFile << model << " " << condition << " " << availability << " " << price << " " << dueDate << " " << rentedTo << endl;
         else
         {
+            if (rentedTo != "N/A")
+            {
+                cout << "You cannot delete this car because it is currently rented by " << rentedTo << endl;
+                NewFile << model << " " << condition << " " << availability << " " << price << " " << dueDate << " " << rentedTo << endl;
+                // break;
+            }
             // Do nothing(i.e., skip)
         }
     }
