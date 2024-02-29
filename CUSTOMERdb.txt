@@ -1,0 +1,7 @@
+1C Rupesh rup BO 0 70
+2C Hemanth anna C 0 100
+4C Rushikesh D@* NONE 0 30
+7C Abhi gabbu NONE 0 60
+8C Sujatha 8247 NONE 0 90
+10C Virat vir NONE 0 79
+11C Dhoni don NONE 0 78

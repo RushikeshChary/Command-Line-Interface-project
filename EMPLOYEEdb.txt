@@ -1,0 +1,6 @@
+1E Raj vinajak E 20 80
+2E adhiraj *** GAKI 0 48
+3E someone password H 0 70
+4E Rachit sahu NONE 0 60
+5E Ravi ravi NONE 0 60
+6E Raju raju NONE 0 66
