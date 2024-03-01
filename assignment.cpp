@@ -10,29 +10,31 @@ using namespace std;
 #define AVG_RECORD 60
 // Discount given to Employees.
 #define DISCOUNT 0.15 //(i.e., 15 % = (15/100))
-// Create three databases - one for CAR database, one for COSTOMER database, and one for EMPLOYEE database.
-//  Start with atleast 5 cars, 5 customers, 5 employees and 1 manager
 
+// Class representing any user with basic information
 class User
 {
-
 public:
-    string Name;
-    string ID;
-    string password;
+    // Public member variables for user details
+    string Name;     // User's name
+    string ID;       // User's ID
+    string password; // User's password
+
+    // Function to view available cars
     void viewAvailableCars();
-    // virtual void browseMyCars() = 0;
-    // virtual void rentCar() = 0;
-    // virtual void returnCar() = 0;
 };
 
+// This function is used to get all the available cars from the car database if requested by any user.
 void User::viewAvailableCars()
 {
     cout << "Here are the available cars: " << endl;
     ifstream cardb;
     string line;
     cardb.open("CARdb.txt");
-    // cin.ignore();
+    if(!cardb)
+    {
+        throw "Error in opening card database";
+    }
     if (cardb)
     {
         while (getline(cardb, line))
@@ -51,12 +53,11 @@ void User::viewAvailableCars()
     }
     else
     {
-        cout << "Error in opening car database" << endl;
-        cerr << "Error in opening car database" << endl;
-        exit(1);
+        throw "Error in opening car database";
     }
 }
 
+// Class representing a Car and its attributes along with operations on the car attributes.
 class Car
 {
 private:
@@ -80,13 +81,17 @@ public:
     void update_database();
 };
 
+// This function is used to update the Car database when requested.
 void Car::update_database()
 {
-    // cout<<
     ofstream NewFile;
     NewFile.open("car.txt");
     ifstream car_db;
     car_db.open("CARdb.txt");
+    if(!car_db)
+    {
+        throw "Error in opening car database";
+    }
     string line;
     while (getline(car_db, line))
     {
@@ -97,15 +102,12 @@ void Car::update_database()
         int price;
         int dueDate;
         string rentedTo;
-        // cout << "here in car database update" << endl;
         data >> model >> condition >> availability >> price >> dueDate >> rentedTo;
         if (this->Model != model)
             NewFile << model << " " << condition << " " << availability << " " << price << " " << dueDate << " " << rentedTo << endl;
         else
         {
             NewFile << this->Model << " " << this->Condition << " " << this->Availability << " " << this->Price << " " << this->DueDate << " " << this->rentedTo << endl;
-            // cout << "updated" << endl;
-            // cout << this->Model << " " << this->Condition << " " << this->Availability << " " << this->Price << " " << this->DueDate << endl;
         }
     }
     car_db.close();
@@ -113,19 +115,16 @@ void Car::update_database()
 
     if (std::remove("CARdb.txt") != 0)
     {
-        // cerr << "Error deleting" << endl;
-        cout << "Error deleting" << endl;
+        throw "Error deleting CARdb.txt";
     }
     if (std::rename("car.txt", "CARdb.txt") != 0)
     {
-        // cerr << "Error in renaming" << endl;
-        cout << "Error in renaming" << endl;
+        throw "Error in renaming car.txt";
     }
     cout << "Car database updated successfully!!" << endl;
-    // remove("CARdb.txt");
-    // rename("Temp.txt", "CARdb.txt");
 }
 
+// This function is used to assign a unique ID for customers and employees. The logic to get the max ID from already existing IDs and give max+1 as new ID(So, IDs go on increasing).
 int nextID(ifstream &db)
 {
     // returns unique ID number for Customer and Employee (based on the database passed).
@@ -146,6 +145,7 @@ int nextID(ifstream &db)
     return num + 1;
 }
 
+// Class representing a Customer and its attributes along with operations on the customer attributes.
 class Customer : public User
 {
 private:
@@ -164,7 +164,6 @@ public:
         this->customer_record = customer_record;
         this->fine = fine;
         this->rentedCars = rentedCars;
-        // number_of_customers++;
     }
 
     void customerSignup();
@@ -233,6 +232,7 @@ public:
 int Customer::average_customer_record = AVG_RECORD;
 int Customer::number_of_customers = 0;
 
+// Function for regestering/Signing up a new customer.
 void Customer::customerSignup()
 {
     // First increment the number of customers.
@@ -252,16 +252,14 @@ void Customer::customerSignup()
         fdb.close();
         cout << "Registerd successfully!!" << endl;
         cout << "Your ID is " << ID << endl;
-        // return C;
     }
     else
     {
-        cerr << "Error in opening Customer Database" << endl;
-        cout << "Error in opening Customer Database" << endl;
-        exit(1);
+        throw "Error in opening Customer database";
     }
 }
 
+// Function for choosing any action from the customer(i.e., Customer's interface).
 void Customer::Interface()
 {
 loop:
@@ -312,6 +310,7 @@ loop:
     goto loop;
 }
 
+// Function to update Customer database when requested.
 void Customer::update_database()
 {
     if (this->rentedCars == "")
@@ -322,6 +321,10 @@ void Customer::update_database()
     newFile.open("temp.txt");
     ifstream db;
     db.open("CUSTOMERdb.txt");
+    if(!db)
+    {
+        throw "Error in opening Customer database";
+    }
     string line;
     while (getline(db, line))
     {
@@ -341,19 +344,16 @@ void Customer::update_database()
 
     if (std::remove("CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error deleting CUSTOMERdb.txt" << endl;
-        cout << "Error deleting CUSTOMERdb.txt" << endl;
+        throw "Error deleting CUSTOMERdb.txt";
     }
     if (std::rename("temp.txt", "CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error in renaming CUSTOMERdb.txt" << endl;
-        cout << "Error in renaming CUSTOMERdb.txt" << endl;
+        throw "Error in renaming CUSTOMERdb.txt";
     }
-    // remove("CUSTOMERdb.txt");
-    // rename("temp.txt", "CUSTOMERdb.txt");
     cout << "Customer database updated successfully" << endl;
 }
 
+// Function to view all rented cars of a customer.
 void Customer::browseMyCars()
 {
     string cars = this->rentedCars;
@@ -373,6 +373,7 @@ void Customer::browseMyCars()
     }
 }
 
+// Function to rent a available car.
 void Customer::rentCar()
 {
     // loop1:
@@ -436,6 +437,10 @@ void Customer::rentCar()
         }
         ifstream cardb;
         cardb.open("CARdb.txt");
+        if(!cardb)
+        {
+            throw "Error in opening CAR database";
+        }
         string line;
         bool isfound = false;
         cin.ignore();
@@ -493,6 +498,7 @@ void Customer::rentCar()
     }
 }
 
+// Function to return a rented car.
 void Customer::returnCar()
 {
     // The customer will enter the damage caused and number of days used.
@@ -504,9 +510,7 @@ void Customer::returnCar()
             cout << i + 1 << ". " << rentedCars[i] << endl;
         }
         int choice;
-        // bool validChoice = false;
         cin >> choice;
-        //****************************************************************
         if (choice > rentedCars.size())
         {
             cout << "Invalid choice" << endl;
@@ -524,6 +528,10 @@ void Customer::returnCar()
         }
         ifstream cardb;
         cardb.open("CARdb.txt");
+        if(!cardb)
+        {
+            throw "Error opening car database";
+        }
         string line;
         cin.ignore();
         while (getline(cardb, line))
@@ -538,7 +546,6 @@ void Customer::returnCar()
             data >> Model >> Condition >> Availability >> Price >> DueDate >> rentedTo;
             if (Model == rentedCars[choice - 1])
             {
-                // validChoice = true;
                 // update CUSTOMERdb(rentedCars, fine, Customer_record)
                 // if its rented, there will be a due date.(i.e., it cant be *)
                 // remove from rentedCars list.
@@ -558,17 +565,8 @@ void Customer::returnCar()
                 break;
             }
         }
-        // if (!validChoice)
-        // {
-        //     cout << "You did not rent this car!!" << endl;
-        //     cardb.close();
-        //     return;
-        // }
-        // else
-        // {
         cout << "Car is returned successfully!!" << endl;
         return;
-        // }
     }
     else
     {
@@ -577,6 +575,7 @@ void Customer::returnCar()
     }
 }
 
+// Class representing a Employee and its attributes along with operations on the customer attributes.
 class Employee : public User
 {
 private:
@@ -654,9 +653,11 @@ public:
     void Interface();
 };
 
+// Declaring initial average employee record and number of employees.
 int Employee::number_of_employees = 0;
 int Employee::average_employee_record = AVG_RECORD;
 
+// Function to register/Signup a new employee.
 void Employee::employeeSignup()
 {
     // First increment the number of customers.
@@ -677,12 +678,11 @@ void Employee::employeeSignup()
     }
     else
     {
-        cerr << "Error in opening Employee Database" << endl;
-        cout << "Error in opening Employee Database" << endl;
-        exit(1);
+        throw "Error in opening database";
     }
 }
 
+// Function for choosing any action from the employee(i.e., Employee's interface).
 void Employee::Interface()
 {
 loop:
@@ -734,12 +734,17 @@ loop:
     goto loop;
 }
 
+// Function to update employee database when requested.
 void Employee::update_database()
 {
     ofstream newFile;
     newFile.open("temp.txt");
     ifstream db;
     db.open("EMPLOYEEdb.txt");
+    if(!db)
+    {
+        throw "Error in opening employee database";
+    }
     string line;
     while (getline(db, line))
     {
@@ -759,19 +764,16 @@ void Employee::update_database()
 
     if (std::remove("EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error deleting EMPLOYEEdb.txt" << endl;
-        cout << "Error deleting EMPLOYEEdb.txt" << endl;
+        throw "Error deleting EMPLOYEEdb.txt";
     }
     if (std::rename("temp.txt", "EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error in renaming EMPLOYEEdb.txt" << endl;
-        cout << "Error in renaming EMPLOYEEdb.txt" << endl;
+        throw "Error in renaming EMPLOYEEdb.txt";
     }
-    // remove("EMPLOYEEdb.txt");
-    // rename("temp.txt", "EMPLOYEEdb.txt");
     cout << "Employee database is updated successfully!!" << endl;
 }
 
+// Function to view all rented cars of a employee.
 void Employee::browseMyCars()
 {
     cout << "Here are the cars you are currently renting: " << endl;
@@ -791,9 +793,9 @@ void Employee::browseMyCars()
     }
 }
 
+// Function to rent a available car.
 void Employee::rentCar()
 {
-    // loop:
     if (this->fine > 0)
     {
         cout << "You have a fine of " << this->fine << endl;
@@ -828,7 +830,6 @@ void Employee::rentCar()
             break;
         }
         }
-        // goto loop;
     }
     else
     {
@@ -852,6 +853,10 @@ void Employee::rentCar()
         }
         ifstream cardb;
         cardb.open("CARdb.txt");
+        if(!cardb)
+        {
+            throw "Error in opening CARdb.txt";
+        }
         string line;
         bool isfound = false;
         cin.ignore();
@@ -895,7 +900,6 @@ void Employee::rentCar()
                     cout << "Sorry, this car is not available. Choose one from available models" << endl;
                     cardb.close();
                     return;
-                    // goto loop;
                 }
             }
         }
@@ -903,12 +907,12 @@ void Employee::rentCar()
         {
             cout << "This model does not exist!!" << endl;
             cardb.close();
-            // goto loop;
             return;
         }
     }
 }
 
+// Function to return a car.
 void Employee::returnCar()
 {
     if (this->numberOfRentedCars() != 0)
@@ -919,7 +923,6 @@ void Employee::returnCar()
             cout << i + 1 << ". " << rentedCars[i] << endl;
         }
         int choice;
-        // bool validChoice = false;
         cin >> choice;
         if (choice > rentedCars.size())
         {
@@ -938,6 +941,10 @@ void Employee::returnCar()
         }
         ifstream cardb;
         cardb.open("CARdb.txt");
+        if(!cardb)
+        {
+            throw "Error opening card database";
+        }
         string line;
         cin.ignore();
         while (getline(cardb, line))
@@ -952,7 +959,6 @@ void Employee::returnCar()
             data >> Model >> Condition >> Availability >> Price >> DueDate >> rentedTo;
             if (Model == rentedCars[choice - 1])
             {
-                // validChoice = true;
                 // update CUSTOMERdb(rentedCars, fine, Customer_record)
                 // if its rented, there will be a due date.(i.e., it cant be *)
                 // remove from rentedCars list.
@@ -972,17 +978,8 @@ void Employee::returnCar()
                 break;
             }
         }
-        // if (!validChoice)
-        // {
-        //     cout << "You did not rent this car!!" << endl;
-        //     cardb.close();
-        //     return;
-        // }
-        // else
-        // {
         cout << "Car is returned successfully!!" << endl;
         return;
-        // }
     }
     else
     {
@@ -991,6 +988,7 @@ void Employee::returnCar()
     }
 }
 
+// Class representing a Employee and its attributes along with operations on the customer attributes.
 class Manager : public User
 {
     // A manager can add/update/delete any customer or employee.
@@ -1021,6 +1019,7 @@ public:
     void viewCarsInfo();
 };
 
+// Function for choosing any action from the employee(i.e., Employee's interface).
 void Manager::Interface()
 {
 loop:
@@ -1105,6 +1104,7 @@ loop:
     goto loop;
 }
 
+// Function to add a customer.
 void Manager::addCustomer()
 {
     // ID will be decided by default.---> cant be given by manager.
@@ -1118,6 +1118,10 @@ void Manager::addCustomer()
     cin >> password;
     ifstream db;
     db.open("CUSTOMERdb.txt");
+    if(!db)
+    {
+        throw "Error in opening CustomerDB";
+    }
     int id = nextID(db);
     db.close();
     ID = to_string(id) + 'C';
@@ -1125,6 +1129,7 @@ void Manager::addCustomer()
     C.customerSignup();
 }
 
+// Function to update a customer.
 void Manager::updateCustomer()
 {
     cout << "Enter the ID of the customer that you want to edit: " << endl;
@@ -1135,6 +1140,10 @@ void Manager::updateCustomer()
     newFile.open("temp.txt");
     ifstream db;
     db.open("CUSTOMERdb.txt");
+    if(!db)
+    {
+        throw "Error in opening CustomerDB";
+    }
     string line;
     while (getline(db, line))
     {
@@ -1173,16 +1182,15 @@ void Manager::updateCustomer()
 
     if (std::remove("CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error deleting CUSTOMERdb.txt" << endl;
-        cout << "Error deleting CUSTOMERdb.txt" << endl;
+        throw "Error in deleting customerdb.txt";
     }
     if (std::rename("temp.txt", "CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error in renaming CUSTOMERdb.txt" << endl;
-        cout << "Error in renaming CUSTOMERdb.txt" << endl;
+        throw "Error in renaming CUSTOMERdb.txt";
     }
 }
 
+// Function to delete a customer.
 void Manager::deleteCustomer()
 {
     cout << "Enter the customer ID that you want to delete: " << endl;
@@ -1193,6 +1201,10 @@ void Manager::deleteCustomer()
     newFile.open("temp.txt");
     ifstream db;
     db.open("CUSTOMERdb.txt");
+    if(!db)
+    {
+        throw "Error in opening CustomerDB";
+    }
     string line;
     while (getline(db, line))
     {
@@ -1226,16 +1238,15 @@ void Manager::deleteCustomer()
 
     if (std::remove("CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error deleting CUSTOMERdb.txt" << endl;
-        cout << "Error deleting CUSTOMERdb.txt" << endl;
+        throw "Error in deleting customerdb.txt";
     }
     if (std::rename("temp.txt", "CUSTOMERdb.txt") != 0)
     {
-        cerr << "Error in renaming CUSTOMERdb.txt" << endl;
-        cout << "Error in renaming CUSTOMERdb.txt" << endl;
+        throw "Error in renaming CUSTOMERdb.txt";
     }
 }
 
+// Function to add an employee.
 void Manager::addEmployee()
 {
     // ID will be decided by default.---> cant be given by manager.
@@ -1249,6 +1260,10 @@ void Manager::addEmployee()
     cin >> password;
     ifstream db;
     db.open("EMPLOYEEdb.txt");
+    if(!db)
+    {
+        throw "Error in opening EmployeeDB";
+    }
     int id = nextID(db);
     db.close();
     ID = to_string(id) + 'E';
@@ -1256,6 +1271,7 @@ void Manager::addEmployee()
     E.employeeSignup();
 }
 
+// Function to update an employee.
 void Manager::updateEmployee()
 {
     cout << "Enter the ID of the employee that you want to edit: " << endl;
@@ -1266,6 +1282,10 @@ void Manager::updateEmployee()
     newFile.open("temp.txt");
     ifstream db;
     db.open("EMPLOYEEdb.txt");
+    if(!db)
+    {
+        throw "Error in opening EmployeeDB";
+    }
     string line;
     while (getline(db, line))
     {
@@ -1307,16 +1327,15 @@ void Manager::updateEmployee()
 
     if (std::remove("EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error deleting EMPLOYEEdb.txt" << endl;
-        cout << "Error deleting EMPLOYEEdb.txt" << endl;
+        throw "Error in deleting EMPLOYEEdb.txt";
     }
     if (std::rename("temp.txt", "EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error in renaming EMPLOYEEdb.txt" << endl;
-        cout << "Error in renaming EMPLOYEEdb.txt" << endl;
+        throw "Error in renaming EMPLOYEEdb.txt";
     }
 }
 
+// Function to delete an employee.
 void Manager::deleteEmployee()
 {
     cout << "Enter the employee ID that you want to delete: " << endl;
@@ -1327,6 +1346,10 @@ void Manager::deleteEmployee()
     newFile.open("temp.txt");
     ifstream db;
     db.open("EMPLOYEEdb.txt");
+    if(!db)
+    {
+        throw "Error in opening EmployeeDB";
+    }
     string line;
     while (getline(db, line))
     {
@@ -1360,44 +1383,45 @@ void Manager::deleteEmployee()
 
     if (std::remove("EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error deleting EMPLOYEEdb.txt" << endl;
-        cout << "Error deleting EMPLOYEEdb.txt" << endl;
+        throw "Error in deleting EMPLOYEEdb.txt";
     }
     if (std::rename("temp.txt", "EMPLOYEEdb.txt") != 0)
     {
-        cerr << "Error in renaming EMPLOYEEdb.txt" << endl;
-        cout << "Error in renaming EMPLOYEEdb.txt" << endl;
+        throw "Error in renaming EMPLOYEEdb.txt";
     }
 }
 
+// Function to add a car.
 void Manager::addCar()
 {
     cout << "Give the car details here in the same order as below (mention N/A in Customer/Employee ID attribute if no one is currently renting it): " << endl;
-    cout << "[Make sure that model is unique(i.e., different from all that of previous cars)]"<<endl;
+    cout << "[Make sure that model is unique(i.e., different from all that of previous cars)]" << endl;
     cout << "Model Condition RentCost(per day)" << endl;
     char Model;
     int Condition, RentCost;
     // string Availability, ID;
-    cin >> Model >> Condition >>RentCost;
+    cin >> Model >> Condition >> RentCost;
     fstream fdb;
     fdb.open("CARdb.txt", ios::app);
     if (fdb)
     {
-        fdb << Model << " " << Condition << " " << "Yes" << " "
+        fdb << Model << " " << Condition << " "
+            << "Yes"
+            << " "
             << RentCost
             << " "
-            << 0 << " " << "N/A" << endl;
+            << 0 << " "
+            << "N/A" << endl;
         fdb.close();
         cout << "Added successfully!!" << endl;
     }
     else
     {
-        cerr << "Error in opening Car Database" << endl;
-        cout << "Error in opening Car Database" << endl;
-        exit(1);
+        throw "Error in opening Car Database";
     }
 }
 
+// Function to update a car.
 void Manager::updateCar()
 {
     cout << "Enter the Car model that you want to update" << endl;
@@ -1408,6 +1432,10 @@ void Manager::updateCar()
     NewFile.open("car.txt");
     ifstream car_db;
     car_db.open("CARdb.txt");
+    if (!car_db)
+    {
+        throw "Error in opening Car Database";
+    }
     string line;
     while (getline(car_db, line))
     {
@@ -1444,17 +1472,16 @@ void Manager::updateCar()
 
     if (std::remove("CARdb.txt") != 0)
     {
-        // cerr << "Error deleting" << endl;
-        cout << "Error deleting CARdb.txt" << endl;
+        throw "Error deleting CAR.txt";
     }
     if (std::rename("car.txt", "CARdb.txt") != 0)
     {
-        // cerr << "Error in renaming" << endl;
-        cout << "Error in renaming car.txt" << endl;
+        throw "Error renaming car.txt";
     }
     cout << "Car database updated successfully!!" << endl;
 }
 
+// Function to delete a car.
 void Manager::deleteCar()
 {
     cout << "Enter the model you want to delete: " << endl;
@@ -1464,6 +1491,10 @@ void Manager::deleteCar()
     NewFile.open("car.txt");
     ifstream car_db;
     car_db.open("CARdb.txt");
+    if (!car_db)
+    {
+        throw "Error in opening Car Database";
+    }
     string line;
     while (getline(car_db, line))
     {
@@ -1493,17 +1524,16 @@ void Manager::deleteCar()
 
     if (std::remove("CARdb.txt") != 0)
     {
-        cerr << "Error deleting" << endl;
-        cout << "Error deleting CARdb.txt" << endl;
+        throw "Error deleting CAR.txt";
     }
     if (std::rename("car.txt", "CARdb.txt") != 0)
     {
-        cerr << "Error in renaming" << endl;
-        cout << "Error in renaming car.txt" << endl;
+        throw "Error in renaming car.txt";
     }
     cout << "Car database updated successfully!!" << endl;
 }
 
+// Function to view all cars.
 void Manager::viewCarsInfo()
 {
     ifstream db;
@@ -1532,12 +1562,11 @@ void Manager::viewCarsInfo()
     }
     else
     {
-        cerr << "Error in opening Car Database" << endl;
-        cout << "Error in opening Car Database" << endl;
-        exit(1);
+        throw "Error in opening Car Database";
     }
 }
 
+// Function to login a customer.
 Customer loginCustomer(string database)
 {
 loop:
@@ -1552,7 +1581,10 @@ loop:
     bool isMatched = false;
     ifstream db;
     db.open(database);
-
+    if (!db)
+    {
+        throw "Error in opening database";
+    }
     while (getline(db, line))
     {
         stringstream data(line);
@@ -1590,6 +1622,7 @@ loop:
     }
 }
 
+// Function to Signup a customer.
 Customer SignupCustomer(string database)
 {
     string name;
@@ -1602,10 +1635,14 @@ Customer SignupCustomer(string database)
     cin >> password;
     ifstream db;
     db.open(database);
+    if (!db)
+    {
+        throw "Error in opening customer database";
+    }
     int num = nextID(db);
     db.close();
     string ID = to_string(num) + 'C';
-    // Initially, the customer record is set to zero here.
+    // Initially, the customer record is set to average record here.
     cout << "customer ID is: " << ID << endl;
     Customer C(name, ID, password, "NONE", 0, Customer::average_customer_record);
     // Now, we update the customer record to average the customer record and add to customer database.
@@ -1613,6 +1650,7 @@ Customer SignupCustomer(string database)
     return C;
 }
 
+// Function to login an employee.
 Employee loginEmployee(string database)
 {
 loop:
@@ -1627,7 +1665,10 @@ loop:
     bool isMatched = false;
     ifstream db;
     db.open(database);
-
+    if (!db)
+    {
+        throw "Error in opening database";
+    }
     while (getline(db, line))
     {
         stringstream data(line);
@@ -1665,6 +1706,7 @@ loop:
     }
 }
 
+// Function to Signup an employee.
 Employee SignupEmployee(string database)
 {
     string name;
@@ -1677,16 +1719,21 @@ Employee SignupEmployee(string database)
     cin >> password;
     ifstream db;
     db.open(database);
+    if (!db)
+    {
+        throw "Error in opening employee database";
+    }
     int num = nextID(db);
     db.close();
     string ID = to_string(num) + 'E';
-    // Initially, the employee record is set to zero here.
+    // Initially, the employee record is set to average record here.
     Employee E(name, ID, password, "NONE", 0, Employee::average_employee_record);
     // Now, we update the employee record to average the employee record and add to employee database.
     E.employeeSignup();
     return E;
 }
 
+// Function to login a manager.
 Manager loginManager(string database)
 {
 loop:
@@ -1701,16 +1748,16 @@ loop:
     bool isMatched = false;
     ifstream db;
     db.open(database);
-
+    if (!db)
+    {
+        throw "Error in opening manager database";
+    }
     while (getline(db, line))
     {
         stringstream data(line);
         string ID;
         string Name;
         string Password;
-        // string RentedCars;
-        // int FineDue;
-        // int Record;
         data >> ID >> Name >> Password;
         if (id == ID)
         {
@@ -1739,6 +1786,7 @@ loop:
     }
 }
 
+// Function to handle various options of customer authentication.
 void CustomerHandle()
 {
 loop:
@@ -1753,16 +1801,30 @@ loop:
     case 1:
     {
         // Login
-        Customer C = loginCustomer("CUSTOMERdb.txt");
-        C.Interface();
-        break;
+        try
+        {
+            Customer C = loginCustomer("CUSTOMERdb.txt");
+            C.Interface();
+            break;
+        }
+        catch (const char *msg)
+        {
+            cout << msg << endl;
+        }
     }
     case 2:
     {
         // Signup
-        Customer C = SignupCustomer("CUSTOMERdb.txt");
-        C.Interface();
-        break;
+        try
+        {
+            Customer C = SignupCustomer("CUSTOMERdb.txt");
+            C.Interface();
+            break;
+        }
+        catch (const char *msg)
+        {
+            cout << msg << endl;
+        }
     }
     case 3:
     {
@@ -1778,6 +1840,7 @@ loop:
     goto loop;
 }
 
+// Function to handle various options of customer authentication.
 void EmployeeHandle()
 {
 loop:
@@ -1792,16 +1855,30 @@ loop:
     case 1:
     {
         // Login
-        Employee E = loginEmployee("EMPLOYEEdb.txt");
-        E.Interface();
-        break;
+        try
+        {
+            Employee E = loginEmployee("EMPLOYEEdb.txt");
+            E.Interface();
+            break;
+        }
+        catch (const char *msg)
+        {
+            cout << msg << endl;
+        }
     }
     case 2:
     {
         // Signup
-        Employee E = SignupEmployee("EMPLOYEEdb.txt");
-        E.Interface();
-        break;
+        try
+        {
+            Employee E = SignupEmployee("EMPLOYEEdb.txt");
+            E.Interface();
+            break;
+        }
+        catch (const char *msg)
+        {
+            cout << msg << endl;
+        }
     }
     case 3:
     {
@@ -1817,6 +1894,7 @@ loop:
     goto loop;
 }
 
+// Function to handle various options of manager authentication.
 void ManagerHandle()
 {
 loop:
@@ -1830,9 +1908,16 @@ loop:
     case 1:
     {
         // Login
-        Manager M = loginManager("MANAGERdb.txt");
-        M.Interface();
-        break;
+        try
+        {
+            Manager M = loginManager("MANAGERdb.txt");
+            M.Interface();
+            break;
+        }
+        catch (const char *msg)
+        {
+            cout << msg << endl;
+        }
     }
     case 2:
     {
@@ -1848,11 +1933,11 @@ loop:
     goto loop;
 }
 
+// Function to get the initial average record of customer/employee and number of customers/employees.
 std::pair<int, int> getAverageRecord(string database)
 {
     int sum = 0;
     int count = 0;
-    // int maxID = 0;
     string line;
     ifstream db;
     db.open(database);
@@ -1868,14 +1953,12 @@ std::pair<int, int> getAverageRecord(string database)
         data >> ID >> Name >> Password >> RentedCars >> FineDue >> Record;
         sum += Record;
         count++;
-        // maxID = max(maxID,ID[0] - '0');
     }
     db.close();
-    // Customer::average_customer_record = sum/count;
-
     return std::make_pair(sum / count, count);
 }
 
+// Main function.
 int main()
 {
     // Setting avg employee and customer record at the beginning.
@@ -1883,12 +1966,10 @@ int main()
     pair<int, int> customerDetails = getAverageRecord("CUSTOMERdb.txt");
     Customer::average_customer_record = customerDetails.first;
     Customer::number_of_customers = customerDetails.second;
-    // cout<<"Average customer record is : "<<Customer::average_customer_record<<endl;
     // 2. Employee.
     pair<int, int> employeeDetails = getAverageRecord("EMPLOYEEdb.txt");
     Employee::average_employee_record = employeeDetails.first;
     Employee::number_of_employees = employeeDetails.second;
-    // cout<<"Average employee record is : "<<Employee::average_employee_record<<endl;
 
 loop:
     cout << "Welcome to the CAR RENTAL SYSTEM" << endl;
